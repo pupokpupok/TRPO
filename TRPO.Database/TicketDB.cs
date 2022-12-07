@@ -12,6 +12,12 @@ namespace TRPO.Database
 {
     internal class TicketDB
     {
+        public static Ticket GetFromDBById(Ticket id)
+        {
+            SqlCommand command = new SqlCommand("SELECT * FROM [Ticket] WHERE Ticket_id = @id", DataBase.getInstance().getConnection());
+            command.Parameters.Add("@id", System.Data.SqlDbType.Int).Value = id;
+            return GetFromDBByCommand(command);
+        }
         public static Ticket GetFromDBById(int id)
         {
             SqlCommand command = new SqlCommand("SELECT * FROM [Ticket] WHERE Ticket_id = @id", DataBase.getInstance().getConnection());

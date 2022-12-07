@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TRPO.Services;
 using TRPO.Models;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace TRPO.Database
 {
@@ -48,6 +49,30 @@ namespace TRPO.Database
             command.ExecuteNonQuery();
             DataBase.getInstance().closeConnection();
         }
-        
+        public static Pilot GetFromDBById(Pilot id)
+        {
+            SqlCommand command = new SqlCommand("SELECT * FROM [Pilot] WHERE Pilot_id = @id", DataBase.getInstance().getConnection());
+            command.Parameters.Add("@id", System.Data.SqlDbType.Int).Value = id;
+            return GetFromDBByCommand(command);
+        }
+        private static Pilot GetFromDBByCommand(SqlCommand command)
+        {
+            DataRow[] pilotInfo;
+            DataTable table = new DataTable();
+            SqlDataAdapter adapter = new SqlDataAdapter();
+            adapter.SelectCommand = command;
+            adapter.Fill(table);
+            pilotInfo = table.Select();
+            if (pilotInfo.Length > 0)
+            {
+                return new Pilot(
+                    pilotId: Convert.ToInt32(pilotInfo[0][0]),
+                    name: Convert.ToString(pilotInfo[0][1]),
+                    surname: Convert.ToString(pilotInfo[0][2])
+                );
+            }
+            else return null;
+        }
+       
     }
 }
