@@ -15,7 +15,7 @@ namespace TRPO.Database
     internal class UserDB
     {
         
-        public static User GetFromDBById(int id)
+        public static User GetFromDBById(User id)
         {
             SqlCommand command = new SqlCommand("SELECT * FROM [User] WHERE Passanger_id = @id", DataBase.getInstance().getConnection());
             command.Parameters.Add("@id", System.Data.SqlDbType.Int).Value = id;

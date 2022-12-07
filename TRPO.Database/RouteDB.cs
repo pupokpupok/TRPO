@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TRPO.Services;
 using TRPO.Models;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace TRPO.Database
 {
@@ -17,7 +18,7 @@ namespace TRPO.Database
             SqlCommand command = new SqlCommand("SELECT * FROM Route", DataBase.getInstance().getConnection());
             return getFlightsByCommand(command);
         }
-
+      
 
         public void SaveUserToDB(Route route)
         {
@@ -30,8 +31,31 @@ namespace TRPO.Database
             command.ExecuteNonQuery();
             DataBase.getInstance().closeConnection();
         }
-        
-
+        private static Route GetFromDBByCommand(SqlCommand command)
+        {
+            DataRow[] routeInfo;
+            DataTable table = new DataTable();
+            SqlDataAdapter adapter = new SqlDataAdapter();
+            adapter.SelectCommand = command;
+            adapter.Fill(table);
+            routeInfo = table.Select();
+            if (routeInfo.Length > 0)
+            {
+                return new Route(
+                    id: Convert.ToInt32(routeInfo[0][0]),
+                    startPoint: Convert.ToString(routeInfo[0][1]),
+                    finishPoint: Convert.ToString(routeInfo[0][2]),
+                    distance: Convert.ToInt32(routeInfo[0][3])
+                );
+            }
+            else return null;
+        }
+        public static Route GetFromDBById(Route id)
+        {
+            SqlCommand command = new SqlCommand("SELECT * FROM [Route] WHERE Route_id = @id", DataBase.getInstance().getConnection());
+            command.Parameters.Add("@id", System.Data.SqlDbType.Int).Value = id;
+            return GetFromDBByCommand(command);
+        }
 
 
         private static List<Route> getFlightsByCommand(SqlCommand command)

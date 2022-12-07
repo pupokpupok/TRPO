@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using TRPO.Services;
 using TRPO.Models;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace TRPO.Database
 {
@@ -90,9 +91,36 @@ namespace TRPO.Database
 
                 }
                 DataBase.getInstance().closeConnection();
+                return tmpFlights;
             }
-
-            return tmpFlights;
+        }
+        private static Flight GetFromDBByCommand(SqlCommand command)
+        {
+            DataRow[] flightInfo;
+            DataTable table = new DataTable();
+            SqlDataAdapter adapter = new SqlDataAdapter();
+            adapter.SelectCommand = command;
+            adapter.Fill(table);
+            flightInfo = table.Select();
+            if (flightInfo.Length > 0)
+            {
+                return new Flight(
+                    flightId: Convert.ToInt32(flightInfo[0][0]),
+                    date: Convert.ToDateTime(flightInfo[0][1]),
+                    startTime: Convert.ToDateTime(flightInfo[0][2]),
+                    finishTime: Convert.ToDateTime(flightInfo[0][3]),
+                    status: Convert.ToString(flightInfo[0][4]),
+                    route: Route.(flightInfo[0][4])
+                    
+                );
+            }
+            else return null;
+        }
+        public static Flight GetFromDBById(Flight id)
+        {
+            SqlCommand command = new SqlCommand("SELECT * FROM [Flight] WHERE Flight_id = @id", DataBase.getInstance().getConnection());
+            command.Parameters.Add("@id", System.Data.SqlDbType.Int).Value = id;
+            return GetFromDBByCommand(command);
         }
     }
 
